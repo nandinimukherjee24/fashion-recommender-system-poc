@@ -1,134 +1,92 @@
 # Fashion Recommender System POC
 
-A segment-aware fashion recommendation framework designed to support luxury fashion, fast fashion, and general retail using popularity-based ranking, hybrid personalization, and cold-start handling.
+A segment-aware fashion recommendation system comparing popularity-based ranking with hybrid personalization, using synthetic retail data.
 
 ## Overview
 
-This proof of concept explores how a unified recommendation framework can adapt to different retail segments using synthetic user, product, and interaction data.
+This project explores product recommendation strategies across three retail segments: luxury, fast fashion, and general retail. It implements a popularity-based baseline, a hybrid personalized recommender, and cold-start fallback strategies.
 
-The system combines two recommendation pipelines:
+The project uses synthetic data and simulated experiments. Results represent proof-of-concept analysis, not validated production performance.
 
-1. **Popularity-Based Recommendations:** Ranks products using aggregate engagement and purchase signals within each segment.
-2. **Personalized Recommendations:** Adjusts popularity scores using a user's preferred brand and category.
+## Objectives
 
-The project also implements fallback strategies for users and products with limited interaction history.
+- Build segment-specific product recommendations.
+- Compare popularity-based and personalized ranking.
+- Explore cold-start strategies for users with limited interaction history.
+- Evaluate recommendations using offline metrics and simulated engagement.
+- Examine recommendation diversity and business-oriented performance measures.
 
-## Business Problem
+## Recommendation Approaches
 
-Fashion retailers serve customers with different purchasing patterns. Luxury shoppers may prioritize brands and make fewer purchases, fast-fashion shoppers may respond more strongly to trends, and general retail shoppers may exhibit more balanced behavior.
+### 1. Popularity-Based Baseline
 
-A single recommendation framework should accommodate these differences without requiring a completely separate algorithm for every segment.
+Ranks products using interaction-derived engagement metrics, including smoothed click-through and conversion rates.
 
-## Project Objectives
+### 2. Hybrid Personalized Recommender
 
-- Build a unified framework for three fashion segments.
-- Generate synthetic user, item, and interaction data.
-- Establish a popularity-based baseline.
-- Implement brand- and category-aware personalization.
-- Handle new users and new products with limited historical data.
-- Evaluate recommendation quality on unseen test users.
-- Interpret performance differences and identify opportunities for improvement.
+Combines product popularity with user brand and category affinities. The implementation also includes diversity-aware re-ranking.
 
-## System Architecture
+### 3. Cold-Start Handling
 
-### 1. Synthetic Data Model
+Uses segment-level popularity when a user's interaction history is unavailable or insufficient.
 
-The proposed data model contains three core tables:
+## Data
 
-- **Users:** User ID, preferred category, preferred brand, average spend, and segment.
-- **Items:** Item ID, brand, category, price, and segment.
-- **Interactions:** Interaction ID, user ID, item ID, event type, timestamp, platform, impressions, clicks, CTR, and rating.
+The project uses synthetic datasets representing users, products, and interactions across three segments:
 
-The intended schema includes approximately 2,000 users, 2,000 items, and 2,000–3,000 interactions. These are design targets; actual generated row counts should be verified against the implementation.
+- `luxury`
+- `fast_fashion`
+- `general_retail`
 
-### 2. Popularity-Based Pipeline
-
-The baseline aggregates product engagement within each segment using:
-
-- Total clicks
-- Total purchases
-- Average click-through rate (CTR)
-
-The proposed score is:
-
-`score = 0.4 × clicks + 0.4 × purchases + 0.2 × average CTR`
-
-Products are ranked within their segment, producing a non-personalized recommendation list.
-
-### 3. Personalized Pipeline
-
-The hybrid model starts with the popularity score and applies preference boosts:
-
-`final_score = base_score + 0.3 × category_match + 0.5 × brand_match`
-
-The category and brand indicators equal 1 when the corresponding product attribute matches the user's preference, and 0 otherwise.
-
-This creates a transparent ranking method that combines aggregate popularity with user-level preferences.
-
-### 4. Cold-Start Handling
-
-**New users:** Use segment-level popularity when user interaction history is unavailable.
-
-**Existing users with no usable history:** Fall back to popular products in their segment and exclude previously seen products when the required history is available.
-
-**New products:** Estimate an initial score from historical brand and category performance within the same segment:
-
-`new_item_score = 0.6 × brand_score + 0.4 × category_score`
-
-These are lightweight metadata-based fallback strategies intended for a proof of concept.
+The datasets include user preferences, product metadata, interaction events, and product prices. No production performance claims are made from these synthetic data.
 
 ## Evaluation
 
-The reported evaluation uses unseen test users and compares the popularity baseline with the hybrid personalized recommender.
+The Python scripts explore offline recommendation metrics, cold-start performance, recommendation diversity, and simulated click-through and conversion outcomes.
 
-| Metric | Popular baseline | Personalized model |
-|---|---:|---:|
-| Precision@10 | 0.003982 | 0.002655 |
-| Relative lift | — | -33% |
+**Important:** Simulated engagement is not equivalent to observed customer behavior. The relative performance of the recommenders must be interpreted in the context of the synthetic data and evaluation methodology.
 
-The reported results show that the popularity baseline outperformed the personalized model on the current test set.
+## Technologies
 
-This suggests that segment-level aggregation can be a strong baseline when individual user histories are sparse. The personalization layer provides a foundation for further development, but its performance should not be assumed to improve without additional validation.
+- Python
+- Pandas and NumPy
+- SciPy
+- scikit-learn
+- Matplotlib
 
-**Evaluation note:** These figures are reported project results and should be checked against the saved test outputs before being treated as independently reproduced results.
+## Repository Contents
 
-## Key Design Decisions
+- `popular_recommender.py` — popularity-based recommendations
+- `personalized_recommender.py` — hybrid personalized recommendations
+- `data_generation.py` — synthetic dataset generation
+- `cold_start_evaluation.py` — cold-start evaluation
+- `offline_evaluation.py` and related scripts — offline metrics and comparisons
+- `evaluation_ab_simulation.py` and `experiment_simulation_v2.py` — simulated experiments
+- `baseline_audit.py` — baseline diversity and overlap checks
+- `segment_vizualization.py` — segment-level visualizations
+- `fashion_recommender_data.zip` — bundled datasets
 
-- Use synthetic data to demonstrate the framework without claiming access to production retail data.
-- Keep the core ranking logic consistent across retail segments.
-- Apply segment filtering to reduce cross-segment contamination.
-- Prefer interpretable scoring rules for an initial proof of concept.
-- Include cold-start fallbacks so the system can return recommendations with limited historical data.
-- Treat the popularity model as a baseline that future personalization approaches must outperform.
+## Running the Project
 
-## Limitations
+1. Download or clone this repository.
+2. Install dependencies:
 
-- Synthetic interactions may not reflect actual customer behavior.
-- CTR is estimated from simulated exposure and engagement assumptions rather than observed production traffic.
-- The current personalization approach uses explicit brand and category preferences rather than collaborative filtering or learned embeddings.
-- Precision@10 depends on how relevant items are defined in the test data.
-- Further evaluation is needed before drawing conclusions about real-world recommendation quality.
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## Future Improvements
+3. Extract `fashion_recommender_data.zip` into a folder named `data` at the repository root.
+4. Run scripts from the repository root after confirming their imports and expected dataset paths.
 
-- Incorporate recency-weighted popularity scores.
-- Explore collaborative filtering and user-item interaction models.
-- Improve personalized ranking with price sensitivity and behavioral features.
-- Evaluate segment-specific ranking weights.
-- Conduct controlled offline experiments and, where feasible, online A/B testing.
-- Monitor coverage, diversity, novelty, and segment-level performance alongside precision.
+Some evaluation scripts depend on outputs generated by other scripts. Run order and compatibility should be verified before executing the complete workflow.
 
-## Tools and Technologies
+## Limitations and Future Work
 
-Python, Pandas, NumPy, and the libraries actually used in the implementation.
-
-## Repository Structure
-
-- `notebooks/fashion_recommender_poc.ipynb` — notebook implementation.
-- `data/` — optional synthetic data samples.
-- `docs/` — optional supporting documentation.
-- `requirements.txt` — dependencies for reproduction.
+- Synthetic data may not reflect real customer behavior.
+- Simulated engagement metrics are not evidence of actual conversion uplift.
+- Evaluation methodology and data leakage risks require further review.
+- Future improvements include stronger offline evaluation, calibrated scoring, improved cold-start features, and validation on approved real-world data.
 
 ## Disclaimer
 
-This repository presents a proof of concept based on synthetic data and simplified recommendation logic. It is not a production recommendation system, and its reported metrics should not be interpreted as evidence of performance on live retail traffic.
+This repository is an educational proof of concept built with synthetic data. It does not represent production deployment or verified commercial impact.
